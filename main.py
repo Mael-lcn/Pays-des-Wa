@@ -5,7 +5,7 @@ import bpy
 
 chemin_dossier = "/Users/maellecene/Desktop/COURS_S2/IG3D/TMEs/tme4/src"
 
-# 2. On dit à Python d'ajouter ce dossier à sa liste de recherche
+# On dit à Python d'ajouter ce dossier à sa liste de recherche
 if chemin_dossier not in sys.path:
     sys.path.append(chemin_dossier)
 

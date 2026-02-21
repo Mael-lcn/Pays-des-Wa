@@ -3,6 +3,9 @@ import math
 
 import bpy
 
+from utils import bprint
+
+
 
 
 def create_massive_vertical_fortress(
@@ -360,15 +363,14 @@ if __name__ == "__main__":
     toutes_les_iles = []
 
     for island in wano_islands_data:
-        print(f"Création de la région : {island['name']}...")
+        bprint(f"Création de la région : {island['name']}...")
 
         nouvelle_ile = create_massive_vertical_fortress(**island)
 
         toutes_les_iles.append(nouvelle_ile)
 
 
-    print("--- L'archipel de Wano est complètement généré ! ---")
-
+    bprint("--- L'archipel de Wano est complètement généré ! ---")
 
 
 
