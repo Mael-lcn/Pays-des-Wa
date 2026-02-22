@@ -1,18 +1,16 @@
 import os
 import sys
-
+import importlib 
 import bpy
 
-chemin_dossier = "/Users/maellecene/Desktop/COURS_S2/IG3D/TMEs/tme4/src"
+chemin_dossier = "/Users/t_ali/Pays-des-Wa"
 
-# On dit à Python d'ajouter ce dossier à sa liste de recherche
 if chemin_dossier not in sys.path:
     sys.path.append(chemin_dossier)
 
-
 from utils import bprint
 import island
-
+importlib.reload(island)
 
 
 # =============================================================================
@@ -141,9 +139,20 @@ if __name__ == "__main__":
     toutes_les_iles = []
 
     for wano_island in wano_islands_data:
+
         bprint(f"Création de la région : {wano_island['name']}...")
 
         toutes_les_iles.append(island.create_massive_vertical_fortress(**wano_island))
+
+
+        bprint("Création de l'Océan intérieur...")
+        # On place l'eau à Z = 55 pour qu'on soit au-dessus du fond mais en dessous des plateau
+        hauteur_eau = wano_base_config["location"][2] + 5
+        island.create_water(
+            name="Eau_Wano", 
+            radius=wano_base_config["radius"] -5.0, # On baisse un peu pour ne pas dépasser les falaisess
+            location=(wano_base_config["location"][0], wano_base_config["location"][1], hauteur_eau)
+            )
 
 
     bprint("--- L'archipel de Wano est complètement généré ! ---")
