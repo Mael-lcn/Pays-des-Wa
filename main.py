@@ -170,13 +170,11 @@ if __name__ == "__main__":
         name="Grande_Cascade",
         width=42.0,
         height=hauteur_cascade,
-        # 🎯 LA CORRECTION EST ICI : On enlève le "- 0.1", elle est pile au niveau de l'eau !
         location=(0, y_bord_ile, hauteur_eau) 
     )
 
     bprint("Percement de la muraille pour la cascade...")
     
-    # 🎯 CORRECTION DU "PONT" DE ROCHE : On descend le centre du cube à Z = 0.0
     bpy.ops.mesh.primitive_cube_add(
         size=1.0, 
         location=(0, y_bord_ile, 0.0) 
