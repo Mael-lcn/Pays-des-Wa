@@ -1,6 +1,6 @@
 import os
 import sys
-import importlib 
+import importlib # 👈 1. Ajoute ceci
 import bpy
 
 chemin_dossier = "/Users/t_ali/Pays-des-Wa"
@@ -11,6 +11,12 @@ if chemin_dossier not in sys.path:
 from utils import bprint
 import island
 importlib.reload(island)
+
+
+
+import water
+importlib.reload(water)
+
 
 
 # =============================================================================
@@ -144,16 +150,55 @@ if __name__ == "__main__":
 
         toutes_les_iles.append(island.create_massive_vertical_fortress(**wano_island))
 
-
+ # ... (Création de l'eau) ...
         bprint("Création de l'Océan intérieur...")
-        # On place l'eau à Z = 55 pour qu'on soit au-dessus du fond mais en dessous des plateau
-        hauteur_eau = wano_base_config["location"][2] + 5
-        island.create_water(
+        hauteur_eau = wano_base_config["location"][2] + 5.0
+        
+        # 1. On réduit un peu plus le rayon de l'eau (-12.0) pour qu'elle ne fuite plus par les falaises
+        rayon_eau = wano_base_config["radius"] - 12.0 
+        water.create_water(
             name="Eau_Wano", 
-            radius=wano_base_config["radius"] -5.0, # On baisse un peu pour ne pas dépasser les falaisess
-            location=(wano_base_config["location"][0], wano_base_config["location"][1], hauteur_eau)
-            )
+            radius=rayon_eau, 
+            location=(0, 0, hauteur_eau)
+        )
+           
+    bprint("Création de la Grande Cascade...")
+    hauteur_cascade = 160.0
+    y_bord_ile = wano_base_config["location"][1] - wano_base_config["radius"] + 2
+    
+    water.create_waterfall(
+        name="Grande_Cascade",
+        width=42.0,
+        height=hauteur_cascade,
+        # 🎯 LA CORRECTION EST ICI : On enlève le "- 0.1", elle est pile au niveau de l'eau !
+        location=(0, y_bord_ile, hauteur_eau) 
+    )
 
+    bprint("Percement de la muraille pour la cascade...")
+    
+    # 🎯 CORRECTION DU "PONT" DE ROCHE : On descend le centre du cube à Z = 0.0
+    bpy.ops.mesh.primitive_cube_add(
+        size=1.0, 
+        location=(0, y_bord_ile, 0.0) 
+    )
+    cutter = bpy.context.active_object
+    cutter.name = "Decoupe_Cascade"
+    
+    # Et on le rend GIGANTESQUE en hauteur (200m de Z) pour qu'il tranche la roche jusqu'en bas !
+    cutter.scale = (38.0, 25, 200.0)
+    
+    cutter.hide_viewport = True
+    cutter.hide_render = True
+    cutter.display_type = 'WIRE'
+    
+    wano_base = bpy.data.objects.get("Wano_Base")
+    if wano_base:
+        bool_mod = wano_base.modifiers.new(name="Trou_Cascade", type='BOOLEAN')
+        bool_mod.operation = 'DIFFERENCE'
+        bool_mod.object = cutter
+        
+        bpy.context.view_layer.objects.active = wano_base
+        bpy.ops.object.modifier_move_to_index(modifier="Trou_Cascade", index=0)
 
     bprint("--- L'archipel de Wano est complètement généré ! ---")
 
