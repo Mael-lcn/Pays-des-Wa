@@ -3,7 +3,7 @@ import sys
 import importlib
 import bpy
 
-chemin_dossier = "/Users/maellecene/Desktop/COURS_S2/IG3D/TMEs/tme4/src/code"
+chemin_dossier = "...chemin/code"
 
 if chemin_dossier not in sys.path:
     sys.path.append(chemin_dossier)
@@ -14,6 +14,13 @@ from utils import bprint
 
 import island
 importlib.reload(island)
+
+
+import udon
+importlib.reload(udon)
+
+import city
+importlib.reload(city)
 
 import Onigashima 
 importlib.reload(Onigashima)
@@ -26,14 +33,22 @@ importlib.reload(water)
 
 
 
+
+
 # =============================================================================
 # --- ZONE DE TEST POUR BLENDER ---
 # =============================================================================
 if __name__ == "__main__":
-    # Nettoie toute la scène 3D pour repartir de zéro à chaque exécution du script
-    bpy.ops.object.select_all(action="SELECT")
-    bpy.ops.object.delete(use_global=False)
-
+    objets_proteges = ["maison_pauvre", "maison_riche", "arbre", "maison_shogun", "pont", "grand_arbre", "temple","tori","Plane_sakura","Wind_sakura","turbulence_sakura","Sakura"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in bpy.context.scene.objects:
+        if obj.type not in ['CAMERA', 'LIGHT']:
+            # On vérifie si le nom de l'objet fait partie de tes assets
+            nom_base = obj.name.split('.')[0] # Permet d'ignorer les .001 si tu as fait des copies
+            if nom_base not in objets_proteges and obj.name in bpy.context.view_layer.objects:
+                    obj.select_set(True) # Sélectionne pour suppression uniquement ce qui n'est pas protégé
+                
+    bpy.ops.object.delete()
 
     # On définit d'abord la base (l'île principale)
     # Elle servira de point de référence pour le Z
@@ -209,6 +224,38 @@ if __name__ == "__main__":
         
         bpy.context.view_layer.objects.active = wano_base
         bpy.ops.object.modifier_move_to_index(modifier="Trou_Cascade", index=0)
+        
+        
+        
+        bprint("Construction de la Capitale des Fleurs...")
+    
+    config_capitale = wano_islands_data[1] 
+    loc_capitale = config_capitale["location"]
+    rayon_plateau_capitale = config_capitale["radius"] - config_capitale["rim_thickness"]
+    
+    city.generer_capitale(
+        nom_ile=config_capitale["name"], # 👈 NOUVEAU ! (C'est "Capitale_des_Fleurs")
+        centre_ile=loc_capitale, 
+        rayon_plateau=rayon_plateau_capitale, 
+        nb_maisons=110, 
+       nb_arbres=140
+    )
+    
+
+# ==========================================
+    # GÉNÉRATION D'UDON
+    # ==========================================
+    bprint("Construction de la prison d'Udon...")
+    
+    config_udon = wano_islands_data[3] 
+    loc_udon = config_udon["location"]
+    rayon_plateau_udon = config_udon["radius"] - config_udon["rim_thickness"]
+    
+    udon.generer_udon(
+        nom_ile=config_udon["name"],
+        centre_ile=loc_udon, 
+        rayon_plateau=rayon_plateau_udon
+    )
 
     bprint("--- L'archipel de Wano est complètement généré ! ---")
 

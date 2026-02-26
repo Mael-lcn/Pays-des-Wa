@@ -1,21 +1,37 @@
 import os
 import sys
-import importlib # 👈 1. Ajoute ceci
+import importlib
 import bpy
 
-chemin_dossier = "/Users/t_ali/Pays-des-Wa"
+chemin_dossier = "/Users/t_ali/Documents/Dev/Master1/S2/IG3D/test_wano/Pays-des-Wa/code"
 
 if chemin_dossier not in sys.path:
     sys.path.append(chemin_dossier)
 
+
 from utils import bprint
+#importlib.reload(utils)
+
 import island
 importlib.reload(island)
 
 
+import udon
+importlib.reload(udon)
+
+import city
+importlib.reload(city)
+
+import Onigashima 
+importlib.reload(Onigashima)
+import Ringo 
+importlib.reload(Ringo)
 
 import water
 importlib.reload(water)
+
+
+
 
 
 
@@ -23,10 +39,16 @@ importlib.reload(water)
 # --- ZONE DE TEST POUR BLENDER ---
 # =============================================================================
 if __name__ == "__main__":
-    # Nettoie toute la scène 3D pour repartir de zéro à chaque exécution du script
-    bpy.ops.object.select_all(action="SELECT")
-    bpy.ops.object.delete(use_global=False)
-
+    objets_proteges = ["maison_pauvre", "maison_riche", "arbre", "maison_shogun", "pont", "grand_arbre", "temple","tori","Plane_sakura","Wind_sakura","turbulence_sakura","Sakura"]
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in bpy.context.scene.objects:
+        if obj.type not in ['CAMERA', 'LIGHT']:
+            # On vérifie si le nom de l'objet fait partie de tes assets
+            nom_base = obj.name.split('.')[0] # Permet d'ignorer les .001 si tu as fait des copies
+            if nom_base not in objets_proteges and obj.name in bpy.context.view_layer.objects:
+                    obj.select_set(True) # Sélectionne pour suppression uniquement ce qui n'est pas protégé
+                
+    bpy.ops.object.delete()
 
     # On définit d'abord la base (l'île principale)
     # Elle servira de point de référence pour le Z
@@ -66,7 +88,7 @@ if __name__ == "__main__":
         {
             "name": "Onigashima",
             "radius": 20.0,
-            "rim_height": 7.0,
+            "rim_height": 5.0,
             "rim_thickness": 1.0,
             "spike_depth": 10.0,
             "rock_protrusion": 6.0,
@@ -140,28 +162,33 @@ if __name__ == "__main__":
         }
     ]
 
-    
+
     # --- Boucle de génération ---
-    toutes_les_iles = []
+    toutes_les_iles = {}
 
     for wano_island in wano_islands_data:
 
         bprint(f"Création de la région : {wano_island['name']}...")
 
-        toutes_les_iles.append(island.create_massive_vertical_fortress(**wano_island))
+        toutes_les_iles[wano_island['name']] = island.create_massive_vertical_fortress(**wano_island)
 
- # ... (Création de l'eau) ...
-        bprint("Création de l'Océan intérieur...")
-        hauteur_eau = wano_base_config["location"][2] + 5.0
-        
-        # 1. On réduit un peu plus le rayon de l'eau (-12.0) pour qu'elle ne fuite plus par les falaises
-        rayon_eau = wano_base_config["radius"] - 12.0 
-        water.create_water(
-            name="Eau_Wano", 
-            radius=rayon_eau, 
-            location=(0, 0, hauteur_eau)
-        )
-           
+
+    Onigashima.construire(toutes_les_iles["Onigashima"])
+    Ringo.construire(toutes_les_iles["Ringo"])
+
+
+    # ... (Création de l'eau) ...
+    bprint("Création de l'Océan intérieur...")
+    hauteur_eau = wano_base_config["location"][2] + 5.0
+
+    # 1. On réduit un peu plus le rayon de l'eau (-12.0) pour qu'elle ne fuite plus par les falaises
+    rayon_eau = wano_base_config["radius"] - 12.0 
+    water.create_water(
+        name="Eau_Wano", 
+        radius=rayon_eau, 
+        location=(0, 0, hauteur_eau)
+    )
+
     bprint("Création de la Grande Cascade...")
     hauteur_cascade = 160.0
     y_bord_ile = wano_base_config["location"][1] - wano_base_config["radius"] + 2
@@ -174,21 +201,21 @@ if __name__ == "__main__":
     )
 
     bprint("Percement de la muraille pour la cascade...")
-    
+
     bpy.ops.mesh.primitive_cube_add(
         size=1.0, 
         location=(0, y_bord_ile, 0.0) 
     )
     cutter = bpy.context.active_object
     cutter.name = "Decoupe_Cascade"
-    
+
     # Et on le rend GIGANTESQUE en hauteur (200m de Z) pour qu'il tranche la roche jusqu'en bas !
     cutter.scale = (38.0, 25, 200.0)
-    
+
     cutter.hide_viewport = True
     cutter.hide_render = True
     cutter.display_type = 'WIRE'
-    
+
     wano_base = bpy.data.objects.get("Wano_Base")
     if wano_base:
         bool_mod = wano_base.modifiers.new(name="Trou_Cascade", type='BOOLEAN')
@@ -197,7 +224,38 @@ if __name__ == "__main__":
         
         bpy.context.view_layer.objects.active = wano_base
         bpy.ops.object.modifier_move_to_index(modifier="Trou_Cascade", index=0)
+        
+        
+        
+        bprint("Construction de la Capitale des Fleurs...")
+    
+    config_capitale = wano_islands_data[1] 
+    loc_capitale = config_capitale["location"]
+    rayon_plateau_capitale = config_capitale["radius"] - config_capitale["rim_thickness"]
+    
+    city.generer_capitale(
+        nom_ile=config_capitale["name"], # 👈 NOUVEAU ! (C'est "Capitale_des_Fleurs")
+        centre_ile=loc_capitale, 
+        rayon_plateau=rayon_plateau_capitale, 
+        nb_maisons=110, 
+       nb_arbres=140
+    )
+    
+
+# ==========================================
+    # GÉNÉRATION D'UDON
+    # ==========================================
+    bprint("Construction de la prison d'Udon...")
+    
+    config_udon = wano_islands_data[3] 
+    loc_udon = config_udon["location"]
+    rayon_plateau_udon = config_udon["radius"] - config_udon["rim_thickness"]
+    
+    udon.generer_udon(
+        nom_ile=config_udon["name"],
+        centre_ile=loc_udon, 
+        rayon_plateau=rayon_plateau_udon
+    )
 
     bprint("--- L'archipel de Wano est complètement généré ! ---")
-
 
