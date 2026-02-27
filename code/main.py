@@ -234,7 +234,7 @@ if __name__ == "__main__":
     rayon_plateau_capitale = config_capitale["radius"] - config_capitale["rim_thickness"]
     
     city.generer_capitale(
-        nom_ile=config_capitale["name"], # 👈 NOUVEAU ! (C'est "Capitale_des_Fleurs")
+        nom_ile=config_capitale["name"], 
         centre_ile=loc_capitale, 
         rayon_plateau=rayon_plateau_capitale, 
         nb_maisons=110, 
