@@ -17,3 +17,9 @@ def bprint(*args):
     console = bpy.data.texts["Wano_Console"]
     console.write(message + "\n")
 
+
+
+def hex_to_rgba(hex_str):
+        hex_str = hex_str.lstrip('#')
+        r, g, b = tuple(int(hex_str[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+        return (r**2.2, g**2.2, b**2.2, 1.0)
