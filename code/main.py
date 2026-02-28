@@ -3,11 +3,28 @@ import sys
 import importlib
 import bpy
 
-chemin_dossier = "/Users/t_ali/Documents/Dev/Master1/S2/IG3D/test_wano/Pays-des-Wa/code"
 
+
+# On essaie d'abord de trouver où est le fichier .blend (s'il a été sauvegardé)
+dossier_racine = os.path.dirname(bpy.data.filepath)
+
+#  Si le .blend est totalement vierge/non sauvegardé
+if not dossier_racine:
+    #On regarde si Blender sait d'où vient le texte "main.py" 
+    if "main.py" in bpy.data.texts and bpy.data.texts["main.py"].filepath:
+        chemin_du_script = bpy.data.texts["main.py"].filepath
+        # Le script est dans /code/main.py, on remonte d'un dossier pour trouver la racine
+        dossier_racine = os.path.dirname(os.path.dirname(chemin_du_script))
+    else:
+        print("Erreur dossier introuvable")
+        
+
+# On pointe vers le dossier "code"
+chemin_dossier = os.path.join(dossier_racine, "code")
+
+# On ajoute le dossier au système pour que les imports fonctionnent
 if chemin_dossier not in sys.path:
     sys.path.append(chemin_dossier)
-
 
 from utils import bprint
 #importlib.reload(utils)
